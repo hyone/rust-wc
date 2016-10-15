@@ -61,9 +61,27 @@ fn read_content(path: &Path) -> Result<String> {
     Ok(s)
 }
 
-fn print_content(path: &Path, content: &str) {
-    let fullpath = path.canonicalize().unwrap();
-    print!("[{}] contains:\n{}", fullpath.display(), content);
+fn count_lines(content: &str) -> usize {
+    content.lines().collect::<Vec<_>>().len()
+}
+
+fn count_words(content: &str) -> usize {
+    content.split_whitespace().collect::<Vec<_>>().len()
+}
+
+fn count_chars(content: &str) -> usize {
+    content.chars().count()
+}
+
+fn print_result(path: &Path,
+                line_count: usize,
+                word_count: usize,
+                char_count: usize) {
+    println!("\t{}\t{}\t{} {}",
+             line_count,
+             word_count,
+             char_count,
+             path.display());
 }
 
 fn help(command: &str) -> String {
@@ -75,7 +93,14 @@ fn main() {
     if let Some(filename) = argv.get(1) {
         let path = Path::new(&filename);
         match read_content(&path) {
-            Ok(s)  => print_content(&path, &s),
+            Ok(s)  => {
+                print_result(
+                    &path,
+                    count_lines(&s),
+                    count_words(&s),
+                    count_chars(&s)
+                );
+            }
             Err(e) => eprintln!("[Error]: {}", e),
         }
     } else {
