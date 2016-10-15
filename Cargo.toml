@@ -1,0 +1,6 @@
+[package]
+name = "rust-wc"
+version = "0.1.0"
+authors = ["hyone <hyone.development@gmail.com>"]
+
+[dependencies]
