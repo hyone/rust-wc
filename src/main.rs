@@ -1,65 +1,17 @@
-use std::error::Error as StdError;
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+
 use std::env;
-use std::fmt;
+use std::error::Error;
 use std::fs::File;
-use std::io::Error as ioError;
 use std::io::prelude::*;
 use std::path::Path;
+use std::process;
 
 
-macro_rules! eprintln {
-    ($($tt:tt)*) => {{
-        use std::io::Write;
-        let _ = writeln!(&mut ::std::io::stderr(), $($tt)*);
-    }}
-}
+pub type Result<T> = std::result::Result<T, Box<Error>>;
 
-
-type Result<'a, T> = std::result::Result<T, Box<StdError + 'a>>;
-
-#[derive(Debug)]
-enum Error<'a> {
-    OpenError(&'a Path, ioError),
-    ReadError(&'a Path, ioError),
-}
-
-impl <'a> StdError for Error<'a> {
-    fn description(&self) -> &str {
-        match *self {
-            Error::OpenError(_, _) => "OpenError",
-            Error::ReadError(_, _) => "ReadError",
-        }
-    }
-
-    fn cause(&self) -> Option<&StdError> {
-        match *self {
-            Error::OpenError(_, ref e) => Some(e),
-            Error::ReadError(_, ref e) => Some(e)
-        }
-    }
-}
-
-impl <'a> fmt::Display for Error<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Error::OpenError(path, ref e) =>
-                write!(f, "Couldn't open {}: {}", path.display(), e.description()),
-            Error::ReadError(path, ref e) =>
-                write!(f, "Couldn't read {}: {}", path.display(), e.description()),
-        }
-    }
-}
-
-fn read_content(path: &Path) -> Result<String> {
-    let mut file = try!(
-        File::open(path).or_else(|e| Err(Error::OpenError(path, e)))
-    );
-    let mut s = String::new();
-    try!(
-        file.read_to_string(&mut s).map_err(|e| Error::ReadError(path, e))
-    );
-    Ok(s)
-}
 
 fn count_lines(content: &str) -> usize {
     content.lines().collect::<Vec<_>>().len()
@@ -89,22 +41,30 @@ fn help(command: &str) -> String {
 }
 
 fn main() {
-    let argv: Vec<String> = env::args().collect();
-    if let Some(filename) = argv.get(1) {
-        let path = Path::new(&filename);
-        match read_content(&path) {
-            Ok(s)  => {
-                print_result(
-                    &path,
-                    count_lines(&s),
-                    count_words(&s),
-                    count_chars(&s)
-                );
-            }
-            Err(e) => eprintln!("[Error]: {}", e),
-        }
+    env_logger::init().unwrap();
+
+    let args: Vec<String> = env::args().collect();
+    if let Some(filename) = args.get(1) {
+        let path     = Path::new(&filename);
+        let mut file = File::open(path).unwrap_or_else(|e| {
+            error!("{}: {}", path.display(), e);
+            process::exit(1);
+        });
+
+        let mut s = String::new();
+        file.read_to_string(&mut s).unwrap_or_else(|e| {
+            error!("{}: {}", path.display(), e);
+            process::exit(1);
+        });
+
+        print_result(
+            &path,
+            count_lines(&s),
+            count_words(&s),
+            count_chars(&s)
+        );
     } else {
-        let command = Path::new(&argv[0]).file_name().unwrap();
+        let command = Path::new(&args[0]).file_name().unwrap();
         println!("{}", help(&command.to_string_lossy()));
     }
 }
