@@ -1,9 +1,51 @@
+use std::ops;
+
+pub struct WcCount {
+    pub lines: usize,
+    pub words: usize,
+    pub chars: usize,
+    pub bytes: usize,
+}
+
+impl WcCount {
+    pub fn empty() -> WcCount {
+        WcCount {
+            lines: 0,
+            words: 0,
+            chars: 0,
+            bytes: 0,
+        }
+    }
+}
+
+impl <'a> ops::AddAssign<&'a WcCount> for WcCount {
+    fn add_assign(&mut self, rhs: &'a WcCount) {
+        self.lines += rhs.lines;
+        self.words += rhs.words;
+        self.chars += rhs.chars;
+        self.bytes += rhs.bytes;
+    }
+}
+
+pub fn wc(content: &str) -> WcCount {
+    WcCount {
+        lines: count_lines(content),
+        words: count_words(content),
+        chars: count_chars(content),
+        bytes: count_bytes(content),
+    }
+}
+
 pub fn count_lines(content: &str) -> usize {
     content.lines().count()
 }
 
 pub fn count_words(content: &str) -> usize {
     content.split_whitespace().count()
+}
+
+pub fn count_chars(content: &str) -> usize {
+    content.chars().count()
 }
 
 pub fn count_bytes(content: &str) -> usize {
@@ -38,6 +80,12 @@ With some receiving the Nobel Prize more than once, this makes a total of 23 org
     fn test_count_words() {
         assert_eq!(count_words(SENTENCE1), 58);
         assert_eq!(count_words(SENTENCE2), 114);
+    }
+
+    #[test]
+    fn test_count_chars() {
+        assert_eq!(count_chars(SENTENCE1), 351);
+        assert_eq!(count_chars(SENTENCE2), 681);
     }
 
     #[test]
