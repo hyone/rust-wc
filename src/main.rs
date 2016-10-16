@@ -2,69 +2,76 @@
 extern crate log;
 extern crate env_logger;
 
+use std::borrow::Cow;
 use std::env;
-use std::error::Error;
+use std::error::Error as StdError;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
+use count::*;
+use error::Error;
 
-pub type Result<T> = std::result::Result<T, Box<Error>>;
+mod count;
+mod error;
 
+pub type Result<T> = std::result::Result<T, Box<StdError>>;
 
-fn count_lines(content: &str) -> usize {
-    content.lines().collect::<Vec<_>>().len()
-}
-
-fn count_words(content: &str) -> usize {
-    content.split_whitespace().collect::<Vec<_>>().len()
-}
-
-fn count_chars(content: &str) -> usize {
-    content.chars().count()
-}
 
 fn print_result(path: &Path,
                 line_count: usize,
                 word_count: usize,
-                char_count: usize) {
+                byte_count: usize) {
     println!("\t{}\t{}\t{} {}",
              line_count,
              word_count,
-             char_count,
+             byte_count,
              path.display());
 }
 
-fn help(command: &str) -> String {
-    format!("{} <filename>", command)
+fn command_name(path: &Path) -> Cow<str> {
+    let command = Path::new(path).file_name().unwrap();
+    command.to_string_lossy()
 }
 
-fn main() {
-    env_logger::init().unwrap();
+fn help(path: &Path) -> String {
+    format!("{} <filename>", command_name(path))
+}
 
-    let args: Vec<String> = env::args().collect();
+fn run(args: Vec<String>) -> Result<()> {
     if let Some(filename) = args.get(1) {
         let path     = Path::new(&filename);
-        let mut file = File::open(path).unwrap_or_else(|e| {
-            error!("{}: {}", path.display(), e);
-            process::exit(1);
-        });
-
+        let mut file = try!(File::open(path).map_err(|e| {
+            Error::IoError { path: path.to_path_buf(), err: e }
+        }));
         let mut s = String::new();
-        file.read_to_string(&mut s).unwrap_or_else(|e| {
-            error!("{}: {}", path.display(), e);
-            process::exit(1);
-        });
+        try!(file.read_to_string(&mut s).map_err(|e| {
+            Error::IoError { path: path.to_path_buf(), err: e }
+        }));
 
         print_result(
             &path,
             count_lines(&s),
             count_words(&s),
-            count_chars(&s)
+            count_bytes(&s)
         );
     } else {
-        let command = Path::new(&args[0]).file_name().unwrap();
-        println!("{}", help(&command.to_string_lossy()));
+        println!("{}", help(Path::new(&args[0])));
+    }
+    Ok(())
+}
+
+
+fn main() {
+    env_logger::init().unwrap();
+
+    let args: Vec<String> = env::args().collect();
+    match run(args) {
+        Ok(_)  => process::exit(0),
+        Err(e) => {
+            error!("{}", e);
+            process::exit(1);
+        },
     }
 }
