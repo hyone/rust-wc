@@ -4,26 +4,18 @@ extern crate env_logger;
 
 use std::borrow::Cow;
 use std::env;
-use std::error::Error as StdError;
-use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process;
+
+use result::*;
+use reports::*;
 use wc::*;
 
+mod reports;
+mod result;
 mod wc;
-
-pub type Result<T> = std::result::Result<T, Box<StdError>>;
-
-
-fn print_counts<T: fmt::Display>(name: T, result: &WcCount) {
-    println!("\t{}\t{}\t{} {}",
-             result.lines,
-             result.words,
-             result.bytes,
-             name);
-}
 
 fn command_name(path: &Path) -> Cow<str> {
     let command = Path::new(path).file_name().unwrap();
@@ -42,35 +34,38 @@ fn run_file(path: &Path) -> Result<WcCount> {
 }
 
 fn run(args: Vec<String>) -> Result<bool> {
-    let mut results = vec![];
+    let mut reports = Reports { data: vec![] };
 
     for filename in args.iter().skip(1) {
         let path   = Path::new(filename);
         let result = run_file(&path);
-        results.push((path, result));
+        reports.data.push(Report {
+            name: path.to_string_lossy(),
+            result: result,
+        });
     }
 
-    let mut total = WcCount::empty();
-    for result in results.iter() {
-        match result {
-            &(ref path, Ok(ref wc_count)) => {
-                print_counts(path.display(), wc_count);
-                total += wc_count;
-            },
-            &(ref path, Err(ref err)) => error!("{}: {}", path.display(), err),
-        }
+    if reports.has_ok_report() {
+        let total = reports.results_ok()
+            .iter()
+            .fold(WcCount::empty(), |a, ref b| a + b);
+        reports.data.push(Report {
+            name: Cow::Owned("total".to_owned()),
+            result: Ok(total)
+        })
     }
 
-    if results.len() > 1 {
-        print_counts("Total", &total);
-    }
-
-    if args.len() == 1 {
+    if reports.data.len() < 1 {
         println!("{}", help(Path::new(&args[0])));
+        return Ok(true);
     }
 
-    let error_files = results.iter().map(|r| &r.1).filter(|r| r.is_err()).collect::<Vec<_>>().len();
-    Ok(error_files == 0)
+    let width = reports.field_width();
+    for report in reports.data.iter() {
+        report.print(width);
+    }
+
+    Ok(!reports.has_error())
 }
 
 fn main() {

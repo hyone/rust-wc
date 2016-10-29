@@ -16,6 +16,23 @@ impl WcCount {
             bytes: 0,
         }
     }
+
+    pub fn max_field_width(&self) -> usize {
+        self.bytes.to_string().len()
+    }
+}
+
+impl <'a> ops::Add<&'a WcCount> for WcCount {
+    type Output = WcCount;
+
+    fn add(self, rhs: &'a WcCount) -> WcCount {
+        WcCount {
+            lines: self.lines + rhs.lines,
+            words: self.words + rhs.words,
+            chars: self.chars + rhs.chars,
+            bytes: self.bytes + rhs.bytes,
+        }
+    }
 }
 
 impl <'a> ops::AddAssign<&'a WcCount> for WcCount {
@@ -36,27 +53,25 @@ pub fn wc(content: &str) -> WcCount {
     }
 }
 
-pub fn count_lines(content: &str) -> usize {
+fn count_lines(content: &str) -> usize {
     content.lines().count()
 }
 
-pub fn count_words(content: &str) -> usize {
+fn count_words(content: &str) -> usize {
     content.split_whitespace().count()
 }
 
-pub fn count_chars(content: &str) -> usize {
+fn count_chars(content: &str) -> usize {
     content.chars().count()
 }
 
-pub fn count_bytes(content: &str) -> usize {
+fn count_bytes(content: &str) -> usize {
     content.bytes().count()
 }
 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     const SENTENCE1: &'static str = "\
 Still Life – Apples and Jar, a still life by the Scottish post-impressionist Samuel Peploe completed c.
 1912–1916 and now held at the Art Gallery of New South Wales.
@@ -72,25 +87,25 @@ With some receiving the Nobel Prize more than once, this makes a total of 23 org
 
     #[test]
     fn test_count_lines() {
-        assert_eq!(count_lines(SENTENCE1), 3);
-        assert_eq!(count_lines(SENTENCE2), 6);
+        assert_eq!(super::count_lines(SENTENCE1), 3);
+        assert_eq!(super::count_lines(SENTENCE2), 6);
     }
 
     #[test]
     fn test_count_words() {
-        assert_eq!(count_words(SENTENCE1), 58);
-        assert_eq!(count_words(SENTENCE2), 114);
+        assert_eq!(super::count_words(SENTENCE1), 58);
+        assert_eq!(super::count_words(SENTENCE2), 114);
     }
 
     #[test]
     fn test_count_chars() {
-        assert_eq!(count_chars(SENTENCE1), 351);
-        assert_eq!(count_chars(SENTENCE2), 681);
+        assert_eq!(super::count_chars(SENTENCE1), 351);
+        assert_eq!(super::count_chars(SENTENCE2), 681);
     }
 
     #[test]
     fn test_count_bytes() {
-        assert_eq!(count_bytes(SENTENCE1), 357);
-        assert_eq!(count_bytes(SENTENCE2), 683);
+        assert_eq!(super::count_bytes(SENTENCE1), 357);
+        assert_eq!(super::count_bytes(SENTENCE2), 683);
     }
 }
