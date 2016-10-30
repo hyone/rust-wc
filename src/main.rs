@@ -5,6 +5,7 @@ extern crate env_logger;
 use std::borrow::Cow;
 use std::env;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process;
@@ -27,16 +28,25 @@ fn help(path: &Path) -> String {
 }
 
 fn run_file(path: &Path) -> Result<WcCount> {
-    let mut file = try!(File::open(path));
     let mut s    = String::new();
-    try!(file.read_to_string(&mut s));
+    if path == Path::new("-") {
+        try!(io::stdin().read_to_string(&mut s));
+    } else {
+        let mut file = try!(File::open(path));
+        try!(file.read_to_string(&mut s));
+    }
     Ok(wc(&s))
 }
 
-fn run(args: Vec<String>) -> Result<bool> {
-    let mut reports = Reports { data: vec![] };
+fn run(mut args: Vec<String>) -> Result<bool> {
+    let mut reports  = Reports { data: vec![] };
+    let command_path = args.pop();
 
-    for filename in args.iter().skip(1) {
+    if args.len() < 1 {
+        args.push("-".to_owned());
+    }
+
+    for filename in args.iter() {
         let path   = Path::new(filename);
         let result = run_file(&path);
         reports.push(Report {
@@ -44,7 +54,6 @@ fn run(args: Vec<String>) -> Result<bool> {
             result: result,
         });
     }
-
     if reports.len() > 1 {
         let total = reports.results_ok()
                            .fold(WcCount::empty(), |a, ref b| a + b);
@@ -52,11 +61,6 @@ fn run(args: Vec<String>) -> Result<bool> {
             name: Cow::Owned("total".to_owned()),
             result: Ok(total)
         })
-    }
-
-    if reports.len() < 1 {
-        println!("{}", help(Path::new(&args[0])));
-        return Ok(true);
     }
 
     let width = reports.field_width();
