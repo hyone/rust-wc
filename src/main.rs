@@ -45,7 +45,7 @@ fn run(args: Vec<String>) -> Result<bool> {
         });
     }
 
-    if reports.has_ok() {
+    if reports.len() > 1 {
         let total = reports.results_ok()
                            .fold(WcCount::empty(), |a, ref b| a + b);
         reports.push(Report {

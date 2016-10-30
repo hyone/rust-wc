@@ -37,10 +37,6 @@ impl <T: fmt::Display> Reports<T> {
         self.iter().find(|&r| r.result.is_err()).is_some()
     }
 
-    pub fn has_ok(&self) -> bool {
-        self.iter().find(|&r| r.result.is_ok()).is_some()
-    }
-
     pub fn field_width(&self) -> usize {
         self.results_ok().fold(DEFAULT_WIDTH, |w, wc| {
             if wc.max_field_width() > w { wc.max_field_width() } else { w }
