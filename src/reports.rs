@@ -3,6 +3,8 @@ use std::fmt;
 use result::Result;
 use wc::WcCount;
 
+const DEFAULT_WIDTH: usize = 7;
+
 pub struct Report<T: fmt::Display> {
     pub name: T,
     pub result: Result<WcCount>,
@@ -40,7 +42,7 @@ impl <T: fmt::Display> Reports<T> {
     }
 
     pub fn field_width(&self) -> usize {
-        self.results_ok().fold(7, |w, wc| {
+        self.results_ok().fold(DEFAULT_WIDTH, |w, wc| {
             if wc.max_field_width() > w { wc.max_field_width() } else { w }
         })
     }

@@ -35,15 +35,6 @@ impl <'a> ops::Add<&'a WcCount> for WcCount {
     }
 }
 
-impl <'a> ops::AddAssign<&'a WcCount> for WcCount {
-    fn add_assign(&mut self, rhs: &'a WcCount) {
-        self.lines += rhs.lines;
-        self.words += rhs.words;
-        self.chars += rhs.chars;
-        self.bytes += rhs.bytes;
-    }
-}
-
 pub fn wc(content: &str) -> WcCount {
     WcCount {
         lines: count_lines(content),

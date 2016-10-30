@@ -47,7 +47,7 @@ fn run(args: Vec<String>) -> Result<bool> {
 
     if reports.has_ok() {
         let total = reports.results_ok()
-            .fold(WcCount::empty(), |a, ref b| a + b);
+                           .fold(WcCount::empty(), |a, ref b| a + b);
         reports.push(Report {
             name: Cow::Owned("total".to_owned()),
             result: Ok(total)
