@@ -38,15 +38,15 @@ fn run_file(path: &Path) -> Result<WcCount> {
     Ok(wc(&s))
 }
 
-fn run(mut args: Vec<String>) -> Result<bool> {
-    let mut reports  = Reports { data: vec![] };
-    let command_path = args.pop();
+fn run(args: Vec<String>) -> Result<bool> {
+    let mut filenames: Vec<_> = args.into_iter().skip(1).collect();
+    let mut reports           = Reports { data: vec![] };
 
-    if args.len() < 1 {
-        args.push("-".to_owned());
+    if filenames.len() < 1 {
+        filenames.push("-".to_owned());
     }
 
-    for filename in args.iter() {
+    for filename in filenames.iter() {
         let path   = Path::new(filename);
         let result = run_file(&path);
         reports.push(Report {
