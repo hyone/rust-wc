@@ -3,7 +3,7 @@ use std::fmt;
 use result::Result;
 use wc::WcCount;
 
-const DEFAULT_WIDTH: usize = 7;
+const DEFAULT_WIDTH: usize = 8;
 
 pub struct Report<T: fmt::Display> {
     pub name: T,
@@ -14,7 +14,7 @@ impl <T: fmt::Display> Report<T> {
     pub fn print(&self, width: usize) {
         match self.result {
             Ok(ref wc_count) => {
-                println!("{:width$}\t{:width$}\t{:width$} {:width$}",
+                println!("{0:width$}{1:width$}{2:width$} {3:width$}",
                          wc_count.lines,
                          wc_count.words,
                          wc_count.bytes,
