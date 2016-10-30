@@ -28,7 +28,7 @@ fn help(path: &Path) -> String {
 }
 
 fn run_file(path: &Path) -> Result<WcCount> {
-    let mut s    = String::new();
+    let mut s = String::new();
     if path == Path::new("-") {
         try!(io::stdin().read_to_string(&mut s));
     } else {
