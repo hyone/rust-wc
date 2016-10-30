@@ -39,29 +39,28 @@ fn run(args: Vec<String>) -> Result<bool> {
     for filename in args.iter().skip(1) {
         let path   = Path::new(filename);
         let result = run_file(&path);
-        reports.data.push(Report {
+        reports.push(Report {
             name: path.to_string_lossy(),
             result: result,
         });
     }
 
-    if reports.has_ok_report() {
+    if reports.has_ok() {
         let total = reports.results_ok()
-            .iter()
             .fold(WcCount::empty(), |a, ref b| a + b);
-        reports.data.push(Report {
+        reports.push(Report {
             name: Cow::Owned("total".to_owned()),
             result: Ok(total)
         })
     }
 
-    if reports.data.len() < 1 {
+    if reports.len() < 1 {
         println!("{}", help(Path::new(&args[0])));
         return Ok(true);
     }
 
     let width = reports.field_width();
-    for report in reports.data.iter() {
+    for report in reports.iter() {
         report.print(width);
     }
 
