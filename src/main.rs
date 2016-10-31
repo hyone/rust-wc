@@ -34,12 +34,12 @@ characters delimited by white space.
 With no FILE, or when FILE is -, read standard input.
 
 Options:
-  -c, --bytes   print the bytes count
-  -h, --help    Show this screen.
+  -c, --bytes   print the byte counts
+  -h, --help    display this help and exit
   -l, --lines   print the newline counts
   -m, --chars   print the character counts
   -w, --words   print the word counts
-  --version     Show version.
+  --version     display version and exit
 ";
 
 #[derive(Debug, RustcDecodable)]
