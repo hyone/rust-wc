@@ -12,9 +12,9 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
-use result::*;
-use reports::*;
-use wc::*;
+use result::Result;
+use reports::{ Report, Reports };
+use wc::{ WcCount, count };
 use wc_option::WcOption;
 
 mod reports;
