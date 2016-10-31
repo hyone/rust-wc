@@ -1,7 +1,7 @@
 use std::fmt;
 
 use result::Result;
-use wc::WcCount;
+use wc_count::WcCount;
 use wc_option::WcOption;
 
 const DEFAULT_WIDTH: usize = 8;

@@ -14,12 +14,12 @@ use std::process;
 
 use result::Result;
 use reports::{ Report, Reports };
-use wc::{ WcCount, count };
+use wc_count::{ WcCount, count };
 use wc_option::WcOption;
 
 mod reports;
 mod result;
-mod wc;
+mod wc_count;
 mod wc_option;
 
 const USAGE: &'static str = "
