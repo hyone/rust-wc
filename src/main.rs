@@ -1,9 +1,11 @@
 #[macro_use]
 extern crate log;
 extern crate env_logger;
+extern crate rustc_serialize;
+extern crate docopt;
 
+use docopt::Docopt;
 use std::borrow::Cow;
-use std::env;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -13,21 +15,43 @@ use std::process;
 use result::*;
 use reports::*;
 use wc::*;
+use wc_option::WcOption;
 
 mod reports;
 mod result;
 mod wc;
+mod wc_option;
 
-fn command_name(path: &Path) -> Cow<str> {
-    let command = Path::new(path).file_name().unwrap();
-    command.to_string_lossy()
+const USAGE: &'static str = "
+Usage: rust-wc [options] ... [<file>...]
+       rust-wc (-h | --help)
+       rust-wc --version
+
+Print newline, word, and byte counts for each FILE, and a total line if
+more than one FILE is specified.  A word is a non-zero-length sequence of
+characters delimited by white space.
+
+With no FILE, or when FILE is -, read standard input.
+
+Options:
+  -c, --bytes   print the bytes count
+  -h, --help    Show this screen.
+  -l, --lines   print the newline counts
+  -m, --chars   print the character counts
+  -w, --words   print the word counts
+  --version     Show version.
+";
+
+#[derive(Debug, RustcDecodable)]
+struct Args {
+    flag_bytes: bool,
+    flag_chars: bool,
+    flag_words: bool,
+    flag_lines: bool,
+    arg_file: Vec<String>,
 }
 
-fn help(path: &Path) -> String {
-    format!("{} <filename>", command_name(path))
-}
-
-fn run_file(path: &Path) -> Result<WcCount> {
+fn run_file(path: &Path, option: &WcOption) -> Result<WcCount> {
     let mut s = String::new();
     if path == Path::new("-") {
         try!(io::stdin().read_to_string(&mut s));
@@ -35,11 +59,26 @@ fn run_file(path: &Path) -> Result<WcCount> {
         let mut file = try!(File::open(path));
         try!(file.read_to_string(&mut s));
     }
-    Ok(wc(&s))
+    Ok(count(&s, option))
 }
 
-fn run(args: Vec<String>) -> Result<bool> {
-    let mut filenames: Vec<_> = args.into_iter().skip(1).collect();
+fn run(args: Args) -> Result<bool> {
+    let is_default_option =
+         !(args.flag_bytes || args.flag_chars
+        || args.flag_words || args.flag_lines);
+    let option =
+        if is_default_option {
+            WcOption { bytes: true,
+                       chars: false,
+                       words: true,
+                       lines: true, }
+        } else {
+            WcOption { bytes: args.flag_bytes,
+                       chars: args.flag_chars,
+                       words: args.flag_words,
+                       lines: args.flag_lines, }
+        };
+    let mut filenames: Vec<_> = args.arg_file;
     let mut reports           = Reports { data: vec![] };
 
     if filenames.len() < 1 {
@@ -48,7 +87,7 @@ fn run(args: Vec<String>) -> Result<bool> {
 
     for filename in filenames.iter() {
         let path   = Path::new(filename);
-        let result = run_file(&path);
+        let result = run_file(&path, &option);
         reports.push(Report {
             name: path.to_string_lossy(),
             result: result,
@@ -65,7 +104,7 @@ fn run(args: Vec<String>) -> Result<bool> {
 
     let width = reports.field_width();
     for report in reports.iter() {
-        report.print(width);
+        report.print(width, &option);
     }
 
     Ok(!reports.has_error())
@@ -74,7 +113,9 @@ fn run(args: Vec<String>) -> Result<bool> {
 fn main() {
     env_logger::init().unwrap();
 
-    let args: Vec<String> = env::args().collect();
+    let args: Args = Docopt::new(USAGE)
+                            .and_then(|d| d.decode())
+                            .unwrap_or_else(|e| e.exit());
     match run(args) {
         Ok(ok) if ok => process::exit(0),
         Ok(_)        => process::exit(1),

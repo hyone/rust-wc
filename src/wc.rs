@@ -1,10 +1,12 @@
 use std::ops;
 
+use wc_option::WcOption;
+
 pub struct WcCount {
-    pub lines: usize,
-    pub words: usize,
-    pub chars: usize,
     pub bytes: usize,
+    pub chars: usize,
+    pub words: usize,
+    pub lines: usize,
 }
 
 impl WcCount {
@@ -35,12 +37,12 @@ impl <'a> ops::Add<&'a WcCount> for WcCount {
     }
 }
 
-pub fn wc(content: &str) -> WcCount {
+pub fn count(content: &str, option: &WcOption) -> WcCount {
     WcCount {
-        lines: count_lines(content),
-        words: count_words(content),
-        chars: count_chars(content),
-        bytes: count_bytes(content),
+        bytes: if option.bytes { count_bytes(content) } else { 0 },
+        chars: if option.chars { count_chars(content) } else { 0 },
+        words: if option.words { count_words(content) } else { 0 },
+        lines: if option.lines { count_lines(content) } else { 0 },
     }
 }
 
