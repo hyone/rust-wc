@@ -51,6 +51,11 @@ struct Args {
     arg_file: Vec<String>,
 }
 
+fn version() -> String {
+    let version = env!( "CARGO_PKG_VERSION" );
+    format!("{}", version)
+}
+
 fn run_file(path: &Path, option: &WcOption) -> Result<WcCount> {
     let mut s = String::new();
     if path == Path::new("-") {
@@ -114,7 +119,7 @@ fn main() {
     env_logger::init().unwrap();
 
     let args: Args = Docopt::new(USAGE)
-                            .and_then(|d| d.decode())
+                            .and_then(|d| d.version(Some(version())).decode())
                             .unwrap_or_else(|e| e.exit());
     match run(args) {
         Ok(ok) if ok => process::exit(0),
