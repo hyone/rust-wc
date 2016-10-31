@@ -52,7 +52,7 @@ struct Args {
 }
 
 fn version() -> String {
-    let version = env!( "CARGO_PKG_VERSION" );
+    let version = env!("CARGO_PKG_VERSION");
     format!("{}", version)
 }
 
