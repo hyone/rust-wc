@@ -52,8 +52,7 @@ struct Args {
 }
 
 fn version() -> String {
-    let version = env!("CARGO_PKG_VERSION");
-    format!("{}", version)
+    env!("CARGO_PKG_VERSION").to_owned()
 }
 
 fn run_file(path: &Path, option: &WcOption) -> Result<WcCount> {
@@ -68,11 +67,9 @@ fn run_file(path: &Path, option: &WcOption) -> Result<WcCount> {
 }
 
 fn run(args: Args) -> Result<bool> {
-    let is_default_option =
-         !(args.flag_bytes || args.flag_chars
-        || args.flag_words || args.flag_lines);
     let option =
-        if is_default_option {
+        if !(args.flag_bytes || args.flag_chars ||
+             args.flag_words || args.flag_lines) {
             WcOption { bytes: true,
                        chars: false,
                        words: true,
@@ -84,7 +81,7 @@ fn run(args: Args) -> Result<bool> {
                        lines: args.flag_lines, }
         };
     let mut filenames: Vec<_> = args.arg_file;
-    let mut reports           = Reports { data: vec![] };
+    let mut reports = Reports { data: vec![] };
 
     if filenames.len() < 1 {
         filenames.push("-".to_owned());
