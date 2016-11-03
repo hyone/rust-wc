@@ -4,8 +4,6 @@ use result::Result;
 use wc_count::WcCount;
 use wc_option::WcOption;
 
-const DEFAULT_WIDTH: usize = 4;
-
 pub struct Report<T: fmt::Display> {
     pub name: T,
     pub result: Result<WcCount>,
@@ -38,7 +36,7 @@ impl <T: fmt::Display> Reports<T> {
     }
 
     pub fn field_width(&self) -> usize {
-        self.results_ok().fold(DEFAULT_WIDTH, |w, wc| {
+        self.results_ok().fold(1, |w, wc| {
             if wc.max_field_width() > w { wc.max_field_width() } else { w }
         })
     }
@@ -133,12 +131,21 @@ mod tests {
         ] };
         assert_eq!(reports.field_width(), 6);
 
-        // when all bytes lengths are less than `DEFAULT_WIDTH`
         let reports = Reports { data: vec![
             Report { name: "test1", result: Ok(wc_count_with_bytes(13)) },
             Report { name: "test2", result: Ok(wc_count_with_bytes(2)) },
             Report { name: "test3", result: Ok(wc_count_with_bytes(12)) },
         ] };
-        assert_eq!(reports.field_width(), 4);
+        assert_eq!(reports.field_width(), 2);
+
+        // when only report with 0 bytes
+        let reports = Reports { data: vec![
+            Report { name: "test1", result: Ok(wc_count_with_bytes(0)) },
+        ] };
+        assert_eq!(reports.field_width(), 1);
+
+        // when no reports
+        let reports: Reports<&str> = Reports { data: vec![] };
+        assert_eq!(reports.field_width(), 1);
     }
 }
