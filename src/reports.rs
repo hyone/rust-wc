@@ -4,7 +4,7 @@ use result::Result;
 use wc_count::WcCount;
 use wc_option::WcOption;
 
-const DEFAULT_WIDTH: usize = 8;
+const DEFAULT_WIDTH: usize = 4;
 
 pub struct Report<T: fmt::Display> {
     pub name: T,
@@ -15,11 +15,11 @@ impl <T: fmt::Display> Report<T> {
     pub fn print(&self, width: usize, option: &WcOption) {
         match self.result {
             Ok(ref wc_count) => {
-                if option.lines { print!("{0:1$}", wc_count.lines, width) }
-                if option.words { print!("{0:1$}", wc_count.words, width) }
-                if option.chars { print!("{0:1$}", wc_count.chars, width) }
-                if option.bytes { print!("{0:1$}", wc_count.bytes, width) }
-                println!(" {0:1$}", self.name, width);
+                if option.lines { print!("{0:1$} ", wc_count.lines, width) }
+                if option.words { print!("{0:1$} ", wc_count.words, width) }
+                if option.chars { print!("{0:1$} ", wc_count.chars, width) }
+                if option.bytes { print!("{0:1$} ", wc_count.bytes, width) }
+                println!("{0:1$}", self.name, width);
             },
             Err(ref err) => {
                 error!("{}: {}", self.name, err);
