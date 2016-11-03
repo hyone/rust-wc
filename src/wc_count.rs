@@ -2,6 +2,7 @@ use std::ops;
 
 use wc_option::WcOption;
 
+#[derive(Debug, PartialEq)]
 pub struct WcCount {
     pub bytes: usize,
     pub chars: usize,

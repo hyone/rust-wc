@@ -59,3 +59,86 @@ impl <T: fmt::Display> Reports<T> {
         self.data.len()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::error::Error as StdError;
+    use std::fmt;
+
+    use wc_count::WcCount;
+    use super::*;
+
+    #[derive(Debug)]
+    struct TestError;
+
+    impl StdError for TestError {
+        fn description(&self) -> &str { "test" }
+        fn cause(&self) -> Option<&StdError> { None }
+    }
+    impl fmt::Display for TestError {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "test")
+        }
+    }
+
+    fn wc_count_with_bytes(bytes: usize) -> WcCount {
+        let mut wc_count = WcCount::empty();
+        wc_count.bytes = bytes;
+        wc_count
+    }
+
+    #[test]
+    fn test_reports_has_error() {
+        let reports = Reports { data: vec![
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(WcCount::empty()) },
+        ] };
+        assert_eq!(reports.has_error(), false);
+
+        let reports = Reports { data: vec![
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Err(Box::new(TestError)) },
+        ] };
+        assert_eq!(reports.has_error(), true);
+    }
+
+    #[test]
+    fn test_results_ok() {
+        let reports = Reports { data: vec![
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Err(Box::new(TestError)) },
+        ] };
+        assert_eq!(
+            reports.results_ok().collect::<Vec<_>>(),
+            vec![&WcCount::empty(), &WcCount::empty()]
+        );
+
+        // when no ok results
+        let reports = Reports { data: vec![
+            Report { name: "test", result: Err(Box::new(TestError)) },
+            Report { name: "test", result: Err(Box::new(TestError)) },
+        ] };
+        assert_eq!(reports.results_ok().collect::<Vec<_>>(), vec![] as Vec<&WcCount>);
+    }
+
+    #[test]
+    fn test_field_width() {
+        let reports = Reports { data: vec![
+            Report { name: "test1", result: Ok(wc_count_with_bytes(1523)) },
+            Report { name: "test2", result: Ok(wc_count_with_bytes(235238)) },
+            Report { name: "test3", result: Ok(wc_count_with_bytes(12)) },
+        ] };
+        assert_eq!(reports.field_width(), 6);
+
+        // when all bytes lengths are less than `DEFAULT_WIDTH`
+        let reports = Reports { data: vec![
+            Report { name: "test1", result: Ok(wc_count_with_bytes(13)) },
+            Report { name: "test2", result: Ok(wc_count_with_bytes(2)) },
+            Report { name: "test3", result: Ok(wc_count_with_bytes(12)) },
+        ] };
+        assert_eq!(reports.field_width(), 4);
+    }
+}
