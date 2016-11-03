@@ -27,11 +27,11 @@ Usage: rust-wc [options] ... [<file>...]
        rust-wc (-h | --help)
        rust-wc --version
 
-Print newline, word, and byte counts for each FILE, and a total line if
-more than one FILE is specified.  A word is a non-zero-length sequence of
+Print newline, word, and byte counts for each <file>, and a total line if
+more than one <file> is specified.  A word is a non-zero-length sequence of
 characters delimited by white space.
 
-With no FILE, or when FILE is -, read standard input.
+With no <file>, or when <file> is -, read standard input.
 
 Options:
   -c, --bytes   print the byte counts
