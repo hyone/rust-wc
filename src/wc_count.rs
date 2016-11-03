@@ -66,6 +66,8 @@ fn count_bytes(content: &str) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     const SENTENCE1: &'static str = "\
 Still Life – Apples and Jar, a still life by the Scottish post-impressionist Samuel Peploe completed c.
 1912–1916 and now held at the Art Gallery of New South Wales.
@@ -78,6 +80,12 @@ The related Nobel Memorial Prize in Economic Sciences was established by Sweden'
 Medals made before 1980 were struck in 23 carat gold, and later from 18 carat green gold plated with a 24 carat gold coating.
 Between 1901 and 2015, the Nobel Prizes and the Prize in Economic Sciences were awarded 573 times to 900 people and organisations.
 With some receiving the Nobel Prize more than once, this makes a total of 23 organisations, and 870 individuals—of whom 48 were women.";
+
+    fn wc_count_with_bytes(bytes: usize) -> WcCount {
+        let mut wc_count = WcCount::empty();
+        wc_count.bytes = bytes;
+        wc_count
+    }
 
     #[test]
     fn test_count_lines() {
@@ -101,5 +109,17 @@ With some receiving the Nobel Prize more than once, this makes a total of 23 org
     fn test_count_bytes() {
         assert_eq!(super::count_bytes(SENTENCE1), 357);
         assert_eq!(super::count_bytes(SENTENCE2), 683);
+    }
+
+    #[test]
+    fn test_max_field_width() {
+        let wc_count = wc_count_with_bytes(255);
+        assert_eq!(wc_count.max_field_width(), 3);
+
+        let wc_count = wc_count_with_bytes(2389238);
+        assert_eq!(wc_count.max_field_width(), 7);
+
+        let wc_count = wc_count_with_bytes(0);
+        assert_eq!(wc_count.max_field_width(), 1);
     }
 }
