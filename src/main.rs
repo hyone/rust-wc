@@ -5,7 +5,6 @@ extern crate rustc_serialize;
 extern crate docopt;
 
 use docopt::Docopt;
-use std::borrow::Cow;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -55,13 +54,14 @@ fn version() -> String {
     env!("CARGO_PKG_VERSION").to_owned()
 }
 
-fn run_file(path: &Path, option: &WcOption) -> Result<WcCount> {
+fn run_file(file: &str, option: &WcOption) -> Result<WcCount> {
     let mut s = String::new();
-    if path == Path::new("-") {
+    if file == "-" {
         try!(io::stdin().read_to_string(&mut s));
     } else {
-        let mut file = try!(File::open(path));
-        try!(file.read_to_string(&mut s));
+        let path = Path::new(file);
+        let mut fh = try!(File::open(path));
+        try!(fh.read_to_string(&mut s));
     }
     Ok(count(&s, option))
 }
@@ -87,11 +87,10 @@ fn run(args: Args) -> Result<bool> {
         filenames.push("-".to_owned());
     }
 
-    for filename in filenames.iter() {
-        let path   = Path::new(filename);
-        let result = run_file(&path, &option);
+    for filename in filenames {
+        let result = run_file(&filename, &option);
         reports.push(Report {
-            name: path.to_string_lossy(),
+            name: filename,
             result: result,
         });
     }
@@ -99,7 +98,7 @@ fn run(args: Args) -> Result<bool> {
         let total = reports.results_ok()
                            .fold(WcCount::empty(), |a, ref b| a + b);
         reports.push(Report {
-            name: Cow::Owned("total".to_owned()),
+            name: "total".to_owned(),
             result: Ok(total)
         })
     }
