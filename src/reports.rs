@@ -125,22 +125,22 @@ mod tests {
     #[test]
     fn test_field_width() {
         let reports = Reports { data: vec![
-            Report { name: "test1", result: Ok(wc_count_with_bytes(1523)) },
-            Report { name: "test2", result: Ok(wc_count_with_bytes(235238)) },
-            Report { name: "test3", result: Ok(wc_count_with_bytes(12)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(1523)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(235238)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(12)) },
         ] };
         assert_eq!(reports.field_width(), 6);
 
         let reports = Reports { data: vec![
-            Report { name: "test1", result: Ok(wc_count_with_bytes(13)) },
-            Report { name: "test2", result: Ok(wc_count_with_bytes(2)) },
-            Report { name: "test3", result: Ok(wc_count_with_bytes(12)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(13)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(2)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(12)) },
         ] };
         assert_eq!(reports.field_width(), 2);
 
         // when only report with 0 bytes
         let reports = Reports { data: vec![
-            Report { name: "test1", result: Ok(wc_count_with_bytes(0)) },
+            Report { name: "test", result: Ok(wc_count_with_bytes(0)) },
         ] };
         assert_eq!(reports.field_width(), 1);
 
