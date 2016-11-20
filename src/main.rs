@@ -57,11 +57,10 @@ fn version() -> String {
 fn run_file(file: &str, option: &WcOption) -> Result<WcCount> {
     let mut s = String::new();
     if file == "-" {
-        try!(io::stdin().read_to_string(&mut s));
+        io::stdin().read_to_string(&mut s)?;
     } else {
         let path = Path::new(file);
-        let mut fh = try!(File::open(path));
-        try!(fh.read_to_string(&mut s));
+        File::open(path)?.read_to_string(&mut s)?;
     }
     Ok(count(&s, option))
 }
