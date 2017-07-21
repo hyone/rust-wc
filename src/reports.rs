@@ -20,7 +20,7 @@ impl <T: fmt::Display> Report<T> {
                 println!("{0:1$}", self.name, width);
             },
             Err(ref err) => {
-                error!("{}: {}", self.name, err);
+                eprintln!("{}: {}", self.name, err);
             }
         }
     }

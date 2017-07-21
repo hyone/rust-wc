@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate log;
-extern crate env_logger;
 extern crate rustc_serialize;
 extern crate docopt;
 
@@ -111,8 +108,6 @@ fn run(args: Args) -> Result<bool> {
 }
 
 fn main() {
-    env_logger::init().unwrap();
-
     let args: Args = Docopt::new(USAGE)
                             .and_then(|d| d.version(Some(version())).decode())
                             .unwrap_or_else(|e| e.exit());
@@ -120,7 +115,7 @@ fn main() {
         Ok(ok) if ok => process::exit(0),
         Ok(_)        => process::exit(1),
         Err(err)     => {
-            error!("{}", err);
+            eprintln!("{}", err);
             process::exit(1);
         },
     }
