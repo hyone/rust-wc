@@ -1,4 +1,5 @@
-extern crate rustc_serialize;
+#[macro_use]
+extern crate serde_derive;
 extern crate docopt;
 
 use docopt::Docopt;
@@ -38,7 +39,7 @@ Options:
   --version     display version and exit
 ";
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, Deserialize)]
 struct Args {
     flag_bytes: bool,
     flag_chars: bool,
@@ -109,7 +110,7 @@ fn run(args: Args) -> Result<bool> {
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-                            .and_then(|d| d.version(Some(version())).decode())
+                            .and_then(|d| d.version(Some(version())).deserialize())
                             .unwrap_or_else(|e| e.exit());
     match run(args) {
         Ok(ok) if ok => process::exit(0),
