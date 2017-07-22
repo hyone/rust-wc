@@ -3,6 +3,10 @@ name = "rust-wc"
 version = "0.1.0"
 authors = ["hyone <hyone.development@gmail.com>"]
 
+[[bin]]
+name = "rust-wc"
+doc = false
+
 [dependencies]
 docopt = "0.8"
 bytecount = "0.1.7"
