@@ -1,23 +1,46 @@
 language: rust
 
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - binutils-dev # optional: only required for the --verify flag of coveralls
+
+cache: cargo
+
 os:
   - linux
   - osx
 
-env:
-  - ARCH=i686
-  - ARCH=x86_64
+rust:
+  - stable
+  - beta
+  - nightly
 
 before_script:
-  - curl https://sh.rustup.rs -sSf | sh -s -- -y
-  - export PATH=~/.cargo/bin:$PATH
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "x86_64" ]]; then rustup target add x86_64-unknown-linux-musl; fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "i686"   ]]; then rustup target add i686-unknown-linux-musl;   fi
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "i686"   ]]; then rustup target add i686-apple-darwin;         fi
+  - pip install 'travis-cargo<0.2' --user
+  # osx
+  - if [[ -e ~/Library/Python/2.7/bin ]]; then export PATH=~/Library/Python/2.7/bin:$PATH; fi
+  # linux
+  - if [[ -e ~/.local/bin ]]; then export PATH=~/.local/bin:$PATH; fi
+  - export RUST_BACKTRACE=1
 
 script:
-  - cargo test --verbose
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "x86_64" ]]; then cargo build --release --target=x86_64-apple-darwin;       fi
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "i686"   ]]; then cargo build --release --target=i686-apple-darwin;         fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "x86_64" ]]; then cargo build --release --target=x86_64-unknown-linux-musl; fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "i686"   ]]; then cargo build --release --target=i686-unknown-linux-musl;   fi
+  - |
+    travis-cargo build &&
+    travis-cargo test &&
+    travis-cargo bench &&
+    travis-cargo --only stable doc
+
+after_success:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo --only stable doc-upload; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo coveralls --no-sudo --verify; fi
+
+env:
+  global:
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+  secure: "pkxmYlEU1zy69bmJ84xSXhjhqWs4Ypu9yKhQbpuDhbrqHInPrXjdCeVW1oo+JyHzbpyEZcagUrJrFNOu5TMfX2olZPGENpB2pV8S5y2H384reKa4DcjGc1jeVEEJYn2r1Dkuj6UWywk7nZAAIFyBU4zSUIBqwgUGc3iRf8jlTDTj8DPD74+S2DMPEAZbG5nf/hd0SlS+pVNC8j+/9FAxcMTN/Wg+cqaVSxwo7WNhoartg1qYgNC7CweV8TFLK6RT+mofA0OKFEtlKTx3A47xDBQueMcLpvS++cK8YMiDX3FTjAd6YdAm5R7IoDQHQvZZpPmLucvGM3G00n/rzd8czkQCs3djrpQAwUGqtoMREd7HjhjG++rN7aWd5zp/OROeJ/587AX2WUsK4BJUrZrSdcf812FG4qusj8Wi/I4Sjp91GMpen3lWBbEK1+iI13yw8d/vKCwOqVzPZ/gJH8YyIAXzdvQ/TQiOPHvvg/3kqtpIj4qgifln6dTPi5hpATXQaOI719tdJ4oszf8HHy4UtgZvke/KgA1GwUDFMDwRqMz8d3xcTjr2DbQF2dKDDRK2n3Q3u3ITVQiIgBpeIrz0ruz/CVeHm4yOEtDcBMX7KIkSU2t7OCA7AK507UoCAliwwS3dZIclEeQ/i/12ToEpn0lHgOsM8mBLYFkUU7b3eAQ="
