@@ -1,19 +1,24 @@
 use std::ops;
 use bytecount;
 
-use wc_option::WcOption;
+pub struct Options {
+    pub bytes: bool,
+    pub chars: bool,
+    pub words: bool,
+    pub lines: bool,
+}
 
 #[derive(Debug, PartialEq)]
-pub struct WcCount {
+pub struct CountStat {
     pub bytes: usize,
     pub chars: usize,
     pub words: usize,
     pub lines: usize,
 }
 
-impl WcCount {
-    pub fn empty() -> WcCount {
-        WcCount {
+impl CountStat {
+    pub fn empty() -> CountStat {
+        CountStat {
             lines: 0,
             words: 0,
             chars: 0,
@@ -26,11 +31,11 @@ impl WcCount {
     }
 }
 
-impl <'a> ops::Add<&'a WcCount> for WcCount {
-    type Output = WcCount;
+impl <'a> ops::Add<&'a CountStat> for CountStat {
+    type Output = CountStat;
 
-    fn add(self, rhs: &'a WcCount) -> WcCount {
-        WcCount {
+    fn add(self, rhs: &'a CountStat) -> CountStat {
+        CountStat {
             lines: self.lines + rhs.lines,
             words: self.words + rhs.words,
             chars: self.chars + rhs.chars,
@@ -39,12 +44,12 @@ impl <'a> ops::Add<&'a WcCount> for WcCount {
     }
 }
 
-pub fn count(content: &str, option: &WcOption) -> WcCount {
-    WcCount {
-        bytes: if option.bytes { count_bytes(content) } else { 0 },
-        chars: if option.chars { count_chars(content) } else { 0 },
-        words: if option.words { count_words(content) } else { 0 },
-        lines: if option.lines { count_lines(content) } else { 0 },
+pub fn count(content: &str, options: &Options) -> CountStat {
+    CountStat {
+        bytes: if options.bytes { count_bytes(content) } else { 0 },
+        chars: if options.chars { count_chars(content) } else { 0 },
+        words: if options.words { count_words(content) } else { 0 },
+        lines: if options.lines { count_lines(content) } else { 0 },
     }
 }
 
@@ -84,10 +89,10 @@ Between 1901 and 2015, the Nobel Prizes and the Prize in Economic Sciences were 
 With some receiving the Nobel Prize more than once, this makes a total of 23 organisations, and 870 individuals—of whom 48 were women.
 ";
 
-    fn wc_count_with_bytes(bytes: usize) -> WcCount {
-        let mut wc_count = WcCount::empty();
-        wc_count.bytes = bytes;
-        wc_count
+    fn count_stat_with_bytes(bytes: usize) -> CountStat {
+        let mut count_stat = CountStat::empty();
+        count_stat.bytes = bytes;
+        count_stat
     }
 
     #[test]
@@ -116,13 +121,13 @@ With some receiving the Nobel Prize more than once, this makes a total of 23 org
 
     #[test]
     fn test_max_field_width() {
-        let wc_count = wc_count_with_bytes(255);
-        assert_eq!(wc_count.max_field_width(), 3);
+        let count_stat = count_stat_with_bytes(255);
+        assert_eq!(count_stat.max_field_width(), 3);
 
-        let wc_count = wc_count_with_bytes(2389238);
-        assert_eq!(wc_count.max_field_width(), 7);
+        let count_stat = count_stat_with_bytes(2389238);
+        assert_eq!(count_stat.max_field_width(), 7);
 
-        let wc_count = wc_count_with_bytes(0);
-        assert_eq!(wc_count.max_field_width(), 1);
+        let count_stat = count_stat_with_bytes(0);
+        assert_eq!(count_stat.max_field_width(), 1);
     }
 }

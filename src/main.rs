@@ -10,15 +10,13 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process;
 
+use count::{CountStat, Options, count};
+use report::{Report, Reports};
 use result::Result;
-use reports::{ Report, Reports };
-use wc_count::{ WcCount, count };
-use wc_option::WcOption;
 
-mod reports;
+mod count;
+mod report;
 mod result;
-mod wc_count;
-mod wc_option;
 
 const USAGE: &'static str = "
 Usage: rust-wc [options] ... [<file>...]
@@ -53,7 +51,7 @@ fn version() -> String {
     env!("CARGO_PKG_VERSION").to_owned()
 }
 
-fn run_file(file: &str, option: &WcOption) -> Result<WcCount> {
+fn run_file(file: &str, options: &Options) -> Result<CountStat> {
     let mut s = String::new();
     if file == "-" {
         io::stdin().read_to_string(&mut s)?;
@@ -61,22 +59,22 @@ fn run_file(file: &str, option: &WcOption) -> Result<WcCount> {
         let path = Path::new(file);
         File::open(path)?.read_to_string(&mut s)?;
     }
-    Ok(count(&s, option))
+    Ok(count(&s, options))
 }
 
 fn run(args: Args) -> Result<bool> {
     let option =
-        if !(args.flag_bytes || args.flag_chars ||
-             args.flag_words || args.flag_lines) {
-            WcOption { bytes: true,
-                       chars: false,
-                       words: true,
-                       lines: true, }
+        if args.flag_bytes || args.flag_chars ||
+           args.flag_words || args.flag_lines {
+            Options { bytes: args.flag_bytes,
+                      chars: args.flag_chars,
+                      words: args.flag_words,
+                      lines: args.flag_lines, }
         } else {
-            WcOption { bytes: args.flag_bytes,
-                       chars: args.flag_chars,
-                       words: args.flag_words,
-                       lines: args.flag_lines, }
+            Options { bytes: true,
+                      chars: false,
+                      words: true,
+                      lines: true, }
         };
     let mut filenames: Vec<_> = args.arg_file;
     let mut reports = Reports { data: vec![] };
@@ -94,7 +92,7 @@ fn run(args: Args) -> Result<bool> {
     }
     if reports.len() > 1 {
         let total = reports.results_ok()
-                           .fold(WcCount::empty(), |a, ref b| a + b);
+                           .fold(CountStat::empty(), |a, ref b| a + b);
         reports.push(Report {
             name: "total".to_owned(),
             result: Ok(total)

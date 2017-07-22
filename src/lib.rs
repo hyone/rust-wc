@@ -1,7 +1,5 @@
 extern crate bytecount;
 
-mod wc_count;
-mod wc_option;
+mod count;
 
-pub use wc_count::count;
-pub use wc_option::WcOption;
+pub use count::{Options, count};

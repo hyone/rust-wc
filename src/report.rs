@@ -1,22 +1,21 @@
 use std::fmt;
 
 use result::Result;
-use wc_count::WcCount;
-use wc_option::WcOption;
+use count::{CountStat, Options};
 
 pub struct Report<T: fmt::Display> {
     pub name: T,
-    pub result: Result<WcCount>,
+    pub result: Result<CountStat>,
 }
 
 impl <T: fmt::Display> Report<T> {
-    pub fn print(&self, width: usize, option: &WcOption) {
+    pub fn print(&self, width: usize, option: &Options) {
         match self.result {
-            Ok(ref wc_count) => {
-                if option.lines { print!("{0:1$} ", wc_count.lines, width) }
-                if option.words { print!("{0:1$} ", wc_count.words, width) }
-                if option.chars { print!("{0:1$} ", wc_count.chars, width) }
-                if option.bytes { print!("{0:1$} ", wc_count.bytes, width) }
+            Ok(ref count_stat) => {
+                if option.lines { print!("{0:1$} ", count_stat.lines, width) }
+                if option.words { print!("{0:1$} ", count_stat.words, width) }
+                if option.chars { print!("{0:1$} ", count_stat.chars, width) }
+                if option.bytes { print!("{0:1$} ", count_stat.bytes, width) }
                 println!("{0:1$}", self.name, width);
             },
             Err(ref err) => {
@@ -41,7 +40,7 @@ impl <T: fmt::Display> Reports<T> {
         })
     }
 
-    pub fn results_ok<'a>(&'a self) -> Box<Iterator<Item=&'a WcCount> + 'a> {
+    pub fn results_ok<'a>(&'a self) -> Box<Iterator<Item=&'a CountStat> + 'a> {
         Box::new(self.iter().flat_map(|r| &r.result))
     }
 
@@ -63,7 +62,7 @@ mod tests {
     use std::error::Error as StdError;
     use std::fmt;
 
-    use wc_count::WcCount;
+    use count::CountStat;
     use super::*;
 
     #[derive(Debug)]
@@ -79,24 +78,24 @@ mod tests {
         }
     }
 
-    fn wc_count_with_bytes(bytes: usize) -> WcCount {
-        let mut wc_count = WcCount::empty();
-        wc_count.bytes = bytes;
-        wc_count
+    fn count_stat_with_bytes(bytes: usize) -> CountStat {
+        let mut count_stat = CountStat::empty();
+        count_stat.bytes = bytes;
+        count_stat
     }
 
     #[test]
     fn test_reports_has_error() {
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(WcCount::empty()) },
-            Report { name: "test", result: Ok(WcCount::empty()) },
-            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
         ] };
         assert_eq!(reports.has_error(), false);
 
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(WcCount::empty()) },
-            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
             Report { name: "test", result: Err(Box::new(TestError)) },
         ] };
         assert_eq!(reports.has_error(), true);
@@ -105,13 +104,13 @@ mod tests {
     #[test]
     fn test_results_ok() {
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(WcCount::empty()) },
-            Report { name: "test", result: Ok(WcCount::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
             Report { name: "test", result: Err(Box::new(TestError)) },
         ] };
         assert_eq!(
             reports.results_ok().collect::<Vec<_>>(),
-            vec![&WcCount::empty(), &WcCount::empty()]
+            vec![&CountStat::empty(), &CountStat::empty()]
         );
 
         // when no ok results
@@ -119,28 +118,28 @@ mod tests {
             Report { name: "test", result: Err(Box::new(TestError)) },
             Report { name: "test", result: Err(Box::new(TestError)) },
         ] };
-        assert_eq!(reports.results_ok().collect::<Vec<_>>(), vec![] as Vec<&WcCount>);
+        assert_eq!(reports.results_ok().collect::<Vec<_>>(), vec![] as Vec<&CountStat>);
     }
 
     #[test]
     fn test_field_width() {
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(wc_count_with_bytes(1523)) },
-            Report { name: "test", result: Ok(wc_count_with_bytes(235238)) },
-            Report { name: "test", result: Ok(wc_count_with_bytes(12)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(1523)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(235238)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(12)) },
         ] };
         assert_eq!(reports.field_width(), 6);
 
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(wc_count_with_bytes(13)) },
-            Report { name: "test", result: Ok(wc_count_with_bytes(2)) },
-            Report { name: "test", result: Ok(wc_count_with_bytes(12)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(13)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(2)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(12)) },
         ] };
         assert_eq!(reports.field_width(), 2);
 
         // when only report with 0 bytes
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(wc_count_with_bytes(0)) },
+            Report { name: "test", result: Ok(count_stat_with_bytes(0)) },
         ] };
         assert_eq!(reports.field_width(), 1);
 
