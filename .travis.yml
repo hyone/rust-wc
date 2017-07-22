@@ -28,6 +28,10 @@ script:
     travis-cargo bench &&
     travis-cargo --only stable doc
 
+after_success:
+  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then travis-cargo --only stable doc-upload; fi
+
 env:
   global:
     - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+  secure: "pkxmYlEU1zy69bmJ84xSXhjhqWs4Ypu9yKhQbpuDhbrqHInPrXjdCeVW1oo+JyHzbpyEZcagUrJrFNOu5TMfX2olZPGENpB2pV8S5y2H384reKa4DcjGc1jeVEEJYn2r1Dkuj6UWywk7nZAAIFyBU4zSUIBqwgUGc3iRf8jlTDTj8DPD74+S2DMPEAZbG5nf/hd0SlS+pVNC8j+/9FAxcMTN/Wg+cqaVSxwo7WNhoartg1qYgNC7CweV8TFLK6RT+mofA0OKFEtlKTx3A47xDBQueMcLpvS++cK8YMiDX3FTjAd6YdAm5R7IoDQHQvZZpPmLucvGM3G00n/rzd8czkQCs3djrpQAwUGqtoMREd7HjhjG++rN7aWd5zp/OROeJ/587AX2WUsK4BJUrZrSdcf812FG4qusj8Wi/I4Sjp91GMpen3lWBbEK1+iI13yw8d/vKCwOqVzPZ/gJH8YyIAXzdvQ/TQiOPHvvg/3kqtpIj4qgifln6dTPi5hpATXQaOI719tdJ4oszf8HHy4UtgZvke/KgA1GwUDFMDwRqMz8d3xcTjr2DbQF2dKDDRK2n3Q3u3ITVQiIgBpeIrz0ruz/CVeHm4yOEtDcBMX7KIkSU2t7OCA7AK507UoCAliwwS3dZIclEeQ/i/12ToEpn0lHgOsM8mBLYFkUU7b3eAQ="
