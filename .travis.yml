@@ -31,10 +31,11 @@ before_script:
 
 script:
   - |
+    travis-cargo clean &&
     travis-cargo build &&
     travis-cargo test &&
     travis-cargo bench &&
-    travis-cargo --only stable doc
+    ([[ "$TRAVIS_RUST_VERSION" == "stable" ]] && cargo doc --no-deps || true)
 
 after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis-cargo --only stable doc-upload; fi
