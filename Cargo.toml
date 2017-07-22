@@ -1,10 +1,11 @@
 [package]
-name = "rust-wc"
+name = "wc"
 version = "0.1.0"
 authors = ["hyone <hyone.development@gmail.com>"]
 
 [[bin]]
 name = "rust-wc"
+path = "src/main.rs"
 doc = false
 
 [dependencies]

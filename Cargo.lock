@@ -1,5 +1,5 @@
 [root]
-name = "rust-wc"
+name = "wc"
 version = "0.1.0"
 dependencies = [
  "bytecount 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",

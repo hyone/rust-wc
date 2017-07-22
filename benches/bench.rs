@@ -1,10 +1,10 @@
 #![feature(test)]
 
-extern crate rust_wc;
+extern crate wc;
 extern crate test;
 
 use test::Bencher;
-use rust_wc::*;
+use wc::*;
 
 #[bench]
 fn bench_count_bytes(b: &mut Bencher) {
