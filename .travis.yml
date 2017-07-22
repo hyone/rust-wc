@@ -1,23 +1,33 @@
 language: rust
 
+sudo: false
+
+cache: cargo
+
 os:
   - linux
   - osx
 
-env:
-  - ARCH=i686
-  - ARCH=x86_64
+rust:
+  - stable
+  - beta
+  - nightly
 
 before_script:
-  - curl https://sh.rustup.rs -sSf | sh -s -- -y
-  - export PATH=~/.cargo/bin:$PATH
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "x86_64" ]]; then rustup target add x86_64-unknown-linux-musl; fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "i686"   ]]; then rustup target add i686-unknown-linux-musl;   fi
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "i686"   ]]; then rustup target add i686-apple-darwin;         fi
+  - pip install 'travis-cargo<0.2' --user
+  # osx
+  - if [[ -e ~/Library/Python/2.7/bin ]]; then export PATH=~/Library/Python/2.7/bin:$PATH; fi
+  # linux
+  - if [[ -e ~/.local/bin ]]; then export PATH=~/.local/bin:$PATH; fi
+  - export RUST_BACKTRACE=1
 
 script:
-  - cargo test --verbose
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "x86_64" ]]; then cargo build --release --target=x86_64-apple-darwin;       fi
-  - if [[ $TRAVIS_OS_NAME == "osx"   && $ARCH == "i686"   ]]; then cargo build --release --target=i686-apple-darwin;         fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "x86_64" ]]; then cargo build --release --target=x86_64-unknown-linux-musl; fi
-  - if [[ $TRAVIS_OS_NAME == "linux" && $ARCH == "i686"   ]]; then cargo build --release --target=i686-unknown-linux-musl;   fi
+  - |
+    travis-cargo build &&
+    travis-cargo test &&
+    travis-cargo bench &&
+    travis-cargo --only stable doc
+
+env:
+  global:
+    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
