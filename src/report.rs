@@ -78,12 +78,6 @@ mod tests {
         }
     }
 
-    fn count_stat_with_bytes(bytes: usize) -> CountStat {
-        let mut count_stat = CountStat::empty();
-        count_stat.bytes = bytes;
-        count_stat
-    }
-
     #[test]
     fn test_reports_has_error() {
         let reports = Reports { data: vec![
@@ -124,22 +118,22 @@ mod tests {
     #[test]
     fn test_field_width() {
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(count_stat_with_bytes(1523)) },
-            Report { name: "test", result: Ok(count_stat_with_bytes(235238)) },
-            Report { name: "test", result: Ok(count_stat_with_bytes(12)) },
+            Report { name: "test", result: Ok(CountStat { bytes: 1523, ..CountStat::empty() }) },
+            Report { name: "test", result: Ok(CountStat { bytes: 235238, ..CountStat::empty() }) },
+            Report { name: "test", result: Ok(CountStat { bytes: 12, ..CountStat::empty() }) },
         ] };
         assert_eq!(reports.field_width(), 6);
 
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(count_stat_with_bytes(13)) },
-            Report { name: "test", result: Ok(count_stat_with_bytes(2)) },
-            Report { name: "test", result: Ok(count_stat_with_bytes(12)) },
+            Report { name: "test", result: Ok(CountStat { bytes: 13, ..CountStat::empty() }) },
+            Report { name: "test", result: Ok(CountStat { bytes: 2, ..CountStat::empty() }) },
+            Report { name: "test", result: Ok(CountStat { bytes: 2, ..CountStat::empty() }) },
         ] };
         assert_eq!(reports.field_width(), 2);
 
         // when only report with 0 bytes
         let reports = Reports { data: vec![
-            Report { name: "test", result: Ok(count_stat_with_bytes(0)) },
+            Report { name: "test", result: Ok(CountStat::empty()) },
         ] };
         assert_eq!(reports.field_width(), 1);
 

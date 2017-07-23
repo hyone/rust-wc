@@ -89,12 +89,6 @@ Between 1901 and 2015, the Nobel Prizes and the Prize in Economic Sciences were 
 With some receiving the Nobel Prize more than once, this makes a total of 23 organisations, and 870 individuals—of whom 48 were women.
 ";
 
-    fn count_stat_with_bytes(bytes: usize) -> CountStat {
-        let mut count_stat = CountStat::empty();
-        count_stat.bytes = bytes;
-        count_stat
-    }
-
     #[test]
     fn test_count_lines() {
         assert_eq!(super::count_lines(SENTENCE1), 3);
@@ -121,13 +115,13 @@ With some receiving the Nobel Prize more than once, this makes a total of 23 org
 
     #[test]
     fn test_max_field_width() {
-        let count_stat = count_stat_with_bytes(255);
+        let count_stat = CountStat { bytes: 255, ..CountStat::empty() };
         assert_eq!(count_stat.max_field_width(), 3);
 
-        let count_stat = count_stat_with_bytes(2389238);
+        let count_stat = CountStat { bytes: 2389238, ..CountStat::empty() };
         assert_eq!(count_stat.max_field_width(), 7);
 
-        let count_stat = count_stat_with_bytes(0);
+        let count_stat = CountStat { bytes: 0, ..CountStat::empty() };
         assert_eq!(count_stat.max_field_width(), 1);
     }
 }
